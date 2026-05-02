@@ -1,9 +1,8 @@
-from PySide6.QtWidgets import QApplication, QLabel, QWidget, QMessageBox
+from PySide6.QtWidgets import QApplication, QLabel, QWidget
 from PySide6.QtUiTools import QUiLoader
+from province import ProvinceBuilder
+from utilities import errorOut
 import os
-
-def errorOut(parent, error: str):
-    QMessageBox.critical(parent, "Error", error)
 
 def SelectPath() -> str:
     loader = QUiLoader()
@@ -29,6 +28,11 @@ if path == "":
 
 loader = QUiLoader()
 window = loader.load("ui/mainwindow.ui", None)
+
+builder = ProvinceBuilder(path)\
+            .removeProvinceColors()\
+            .removeSea()
+window.popSelectorImg.setPixmap(builder.getPixmap())
 
 window.show()
 app.exec()
