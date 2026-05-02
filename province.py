@@ -6,15 +6,6 @@ import numpy as np
 import re
 import os
 
-def blendColors(base: QColor, overlay: QColor) -> QColor:
-    a = overlay.alphaF()
-    
-    r = overlay.redF() * a + base.redF() * (1 - a)
-    g = overlay.greenF() * a + base.greenF() * (1 - a)
-    b = overlay.blueF() * a + base.blueF() * (1 - a)
-    
-    return QColor.fromRgbF(r, g, b)
-
 class ProvinceBuilder:
     WIDTH  = 5616
     HEIGHT = 2160
