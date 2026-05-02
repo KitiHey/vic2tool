@@ -77,6 +77,10 @@ def changeDate(index):
     except FileNotFoundError as e:
         errorOut(window, str(e))
         window.dateDropdown.setCurrentIndex(builder.indexDate())
+def clearSelection():
+    builder.clearSelection()
+    window.popSelectorImg.setPixmap(builder.getPixmap())
+    updateValues()
 
 window.dateDropdown.addItems(builder.allDates())
 
@@ -86,6 +90,7 @@ window.popChanged.returnPressed.connect(changePop)
 window.confirmPopChange.clicked.connect(confirmChanges)
 window.savePopChange.clicked.connect(saveChanges)
 window.dateDropdown.activated.connect(changeDate)
+window.clearPopMap.clicked.connect(clearSelection)
 
 window.show()
 app.exec()

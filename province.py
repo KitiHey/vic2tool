@@ -214,6 +214,10 @@ class ProvinceBuilder:
         painter.setClipRegion(self.selectedMask)
         painter.drawRect(self.pixmap.rect())
         painter.end()
+    def clearSelection(self):
+        self.addedProvinces.clear()
+        self.selectedMask = None
+        self.updatePixmap()
     def deselectProvince(self, color: QColor) -> int:
         mask = QRegion(QBitmap.fromImage(self.provinceImage.createMaskFromColor(color.rgb(), Qt.MaskOutColor)))
         id = self.colorsProvinces[color.rgb()]
