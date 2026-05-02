@@ -24,10 +24,9 @@ def SelectPath() -> str:
     return pathSelector.text()
 
 app = QApplication([])
-#path = SelectPath()
-#if path == "":
-#    exit(0)
-path = "/home/kitihey/Descargas/Victoria.II.v3.04.Inclu.ALL.DLC/mod/partidos randoms"
+path = SelectPath()
+if path == "":
+    exit(0)
 
 loader = QUiLoader()
 for widget in custom_widgets.widgets:
