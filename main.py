@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication, QLabel, QWidget, QPushButton
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QObject
-from province import ProvinceBuilder
+from province import ProvincePopBuilder
 from utilities import errorOut
 from popSelector import popSelector
 import custom_widgets
@@ -35,7 +35,7 @@ for widget in custom_widgets.widgets:
 window = loader.load("ui/mainwindow.ui", None)
 
 try:
-    builder = ProvinceBuilder(path) \
+    builder = ProvincePopBuilder(path) \
                 .removeProvinceColors() \
                 .removeSea()
 except FileNotFoundError as e:
