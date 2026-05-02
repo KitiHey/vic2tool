@@ -31,6 +31,11 @@ class ProvinceBuilder:
         self.colorsProvinces = {v: k for k, v in self.provincesColors.items()}
         self.addedProvinces = []
         self.selectedMask = None
+    def selectedProvinces(self) -> list:
+        return [str(v) for v in self.addedProvinces]
+    def population(self) -> int:
+        selectedPop = [v if k in self.addedProvinces else 0 for k, v in self.provincesPops.items()]
+        return sum(selectedPop)
     def reloadPixmap(self):
         self.visualpixmap = self.pixmap.copy()
     def getProvincesColors(self) -> map[int, int]:
@@ -57,7 +62,7 @@ class ProvinceBuilder:
 
             last_size = 0
             for idprovince in idprovinces:
-                id = idprovince.group(1)
+                id = int(idprovince.group(1))
                 pos = int(idprovince.span()[1])
                 pos_last = next(lasts).span()[1]
                 sizes = [last_size]

@@ -24,9 +24,10 @@ def SelectPath() -> str:
     return pathSelector.text()
 
 app = QApplication([])
-path = SelectPath()
-if path == "":
-    exit(0)
+#path = SelectPath()
+#if path == "":
+#    exit(0)
+path = "/home/kitihey/Descargas/Victoria.II.v3.04.Inclu.ALL.DLC/mod/partidos randoms"
 
 loader = QUiLoader()
 for widget in custom_widgets.widgets:
@@ -46,10 +47,24 @@ def clickedSelector(x, y):
         builder.deselectProvince(color)
     else:
         builder.selectProvince(color)
+
     window.popSelectorImg.setPixmap(builder.getPixmap())
+    window.popChanged.setText(str(builder.population()))
+    window.currentPop.setText(str(builder.population()))
+    window.removedPop.setText("0")
+    window.selectedProvinces.setText(", ".join(builder.selectedProvinces()))
+def changePop():
+    try:
+        txt = str(eval(window.popChanged.text()))
+    except:
+        txt = window.currentPop.text()
+    window.popChanged.setText(txt)
+    window.removedPop.setText(str(int(float(window.currentPop.text())-float(txt))))
+
 
 window.popSelectorImg.installEventFilter(window)
 window.popSelectorImg.clicked.connect(clickedSelector)
+window.popChanged.returnPressed.connect(changePop)
 
 window.show()
 app.exec()
