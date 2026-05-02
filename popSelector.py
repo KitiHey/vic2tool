@@ -1,3 +1,5 @@
+from utilities import succededOut, errorOut
+
 def popSelector(window, builder: ProvinceBuilder):
     window.popSelectorImg.setPixmap(builder.getPixmap())
 
@@ -29,6 +31,7 @@ def popSelector(window, builder: ProvinceBuilder):
         updateValues()
     def saveChanges():
         builder.savePop()
+        succededOut(window, "Everything is saved!")
     def changeDate(index):
         try:
             builder.changeDate(index)

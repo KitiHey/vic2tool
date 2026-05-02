@@ -3,6 +3,7 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QObject
 from province import ProvinceBuilder
 from utilities import errorOut
+from popSelector import popSelector
 import custom_widgets
 import os
 

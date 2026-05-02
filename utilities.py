@@ -4,6 +4,9 @@ import os
 def errorOut(parent, error: str):
     QMessageBox.critical(parent, "Error", error)
 
+def succededOut(parent, message: str):
+    QMessageBox.information(parent, "Success!", message)
+
 def getFile(path, filename) -> str:
     newpath = path
     if (path[len(path)-1] != "/"):
