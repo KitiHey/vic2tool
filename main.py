@@ -70,12 +70,22 @@ def confirmChanges():
     updateValues()
 def saveChanges():
     builder.savePop()
+def changeDate(index):
+    try:
+        builder.changeDate(index)
+        updateValues()
+    except FileNotFoundError as e:
+        errorOut(window, str(e))
+        window.dateDropdown.setCurrentIndex(builder.indexDate())
+
+window.dateDropdown.addItems(builder.allDates())
 
 window.popSelectorImg.installEventFilter(window)
 window.popSelectorImg.clicked.connect(clickedSelector)
 window.popChanged.returnPressed.connect(changePop)
 window.confirmPopChange.clicked.connect(confirmChanges)
 window.savePopChange.clicked.connect(saveChanges)
+window.dateDropdown.activated.connect(changeDate)
 
 window.show()
 app.exec()

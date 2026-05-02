@@ -22,9 +22,12 @@ class ProvinceBuilder:
     SELECTION_COLOR = QColor(255, 255, 0, 100)
     def __init__(self, path):
         self.path = path
+        self.rawpops_path = getFile(self.path, "history/pops")
         self.provinceImage = QImage(getFile(path, "map/provinces.bmp"))
         self.terrainImage = QImage(getFile(self.path, "map/terrain.bmp"))
-        self.history_path = getFile(self.path, "history/pops/1836.1.1")
+        self.dates = self.getDates()
+        self.activatedDate = 0
+        self.history_path = getFile(self.path, "history/pops/"+self.currentDate())
         self.csv = getFile(self.path, "map/definition.csv")
         self.pixmap = QPixmap(self.provinceImage)
         self.reloadPixmap()
@@ -33,6 +36,24 @@ class ProvinceBuilder:
         self.colorsProvinces = {v: k for k, v in self.provincesColors.items()}
         self.addedProvinces = []
         self.selectedMask = None
+    def getDates(self):
+        return os.listdir(self.rawpops_path)
+    def allDates(self):
+        return self.dates
+    def indexDate(self) -> int:
+        return self.activatedDate
+    def currentDate(self, *args) -> str:
+        if len(args) == 0:
+            return self.dates[self.activatedDate]
+        else:
+            return self.dates[args[0]]
+    def changeDate(self, i: int):
+        if i >= 0 and i < len(self.dates):
+            # Error check
+            getFile(self.path, "history/pops/"+self.currentDate(i))
+            self.activatedDate = i
+        self.history_path = getFile(self.path, "history/pops/"+self.currentDate())
+        self.provincesPops = self.getPopulation()
     def savePop(self):
         idprovinces = re.compile(r'^(\d+) = {', re.MULTILINE)
         sizeprovinces  = re.compile(r'size = (\d+)', re.MULTILINE)
