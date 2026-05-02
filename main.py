@@ -1,7 +1,9 @@
 from PySide6.QtWidgets import QApplication, QLabel, QWidget
 from PySide6.QtUiTools import QUiLoader
+from PySide6.QtCore import QObject
 from province import ProvinceBuilder
 from utilities import errorOut
+import custom_widgets
 import os
 
 def SelectPath() -> str:
@@ -27,12 +29,27 @@ if path == "":
     exit(0)
 
 loader = QUiLoader()
+for widget in custom_widgets.widgets:
+    loader.registerCustomWidget(widget)
 window = loader.load("ui/mainwindow.ui", None)
 
-builder = ProvinceBuilder(path)\
-            .removeProvinceColors()\
+builder = ProvinceBuilder(path) \
+            .removeProvinceColors() \
             .removeSea()
 window.popSelectorImg.setPixmap(builder.getPixmap())
+
+def clickedSelector(x, y):
+    if builder.provinceIsSea(x, y):
+        return
+    color = builder.getProvincePixel(x, y)
+    if builder.provinceIsSelected(x, y):
+        builder.deselectProvince(color)
+    else:
+        builder.selectProvince(color)
+    window.popSelectorImg.setPixmap(builder.getPixmap())
+
+window.popSelectorImg.installEventFilter(window)
+window.popSelectorImg.clicked.connect(clickedSelector)
 
 window.show()
 app.exec()

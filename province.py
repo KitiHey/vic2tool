@@ -1,17 +1,85 @@
-from PySide6.QtGui import QPixmap, QImage, QBitmap, QTransform, QColor
+from PySide6.QtGui import QPixmap, QImage, QBitmap, QTransform, QColor, QPainter, QRegion
+from PySide6.QtCore import Qt
 from utilities import getFile
+from functools import cache
 import numpy as np
+import re
+import os
+
+def blendColors(base: QColor, overlay: QColor) -> QColor:
+    a = overlay.alphaF()
+    
+    r = overlay.redF() * a + base.redF() * (1 - a)
+    g = overlay.greenF() * a + base.greenF() * (1 - a)
+    b = overlay.blueF() * a + base.blueF() * (1 - a)
+    
+    return QColor.fromRgbF(r, g, b)
 
 class ProvinceBuilder:
     WIDTH  = 5616
     HEIGHT = 2160
+    WHITE_COLOR = QColor(255, 255, 255)
+    SELECTION_COLOR = QColor(255, 255, 0, 100)
     def __init__(self, path):
         self.path = path
         self.provinceImage = QImage(getFile(path, "map/provinces.bmp"))
+        self.terrainImage = QImage(getFile(self.path, "map/terrain.bmp"))
         self.pixmap = QPixmap(self.provinceImage)
+        self.reloadPixmap()
+        self.provincesPops = self.getPopulation()
+        self.provincesColors = self.getProvincesColors()
+        self.colorsProvinces = {v: k for k, v in self.provincesColors.items()}
+        self.addedProvinces = []
+        self.selectedMask = None
+    def reloadPixmap(self):
+        self.visualpixmap = self.pixmap.copy()
+    def getProvincesColors(self) -> map[int, int]:
+        csv = getFile(self.path, "map/definition.csv")
+        rgx = re.compile(r'(\d+)\.?;(\d+)\.?;(\d+)\.?;(\d+)\.?;', re.MULTILINE)
+        output = {}
+        with open(csv, "r", errors="ignore") as file:
+            for match in rgx.finditer(file.read()):
+                id = int(match.group(1))
+                r = int(match.group(2))
+                g = int(match.group(3))
+                b = int(match.group(4))
+                output[id] = QColor(r, g, b).rgb()
+        return output
+    def getPopulation(self) -> map[int, int]:
+        output = {}
+        # TODO: Unhardcode the 1836.1.1
+        history_path = getFile(self.path, "history/pops/1836.1.1")
+        def parseContents(text: str) -> map[int, int]:
+            ouptut = {}
+            idprovinces = re.compile(r'^(\d+) = {', re.MULTILINE).finditer(text)
+            sizeprovinces  = re.compile(r'size = (\d+)', re.MULTILINE).finditer(text)
+            lasts  = re.compile(r'^}', re.MULTILINE).finditer(text)
+
+            last_size = 0
+            for idprovince in idprovinces:
+                id = idprovince.group(1)
+                pos = int(idprovince.span()[1])
+                pos_last = next(lasts).span()[1]
+                sizes = [last_size]
+                for size in sizeprovinces:
+                    pos_size = size.span()[1]
+                    if pos_size >= pos_last:
+                        last_size = int(size.group(1))
+                        break
+                    sizes.append(int(size.group(1)))
+                output[id] = sum(sizes)
+            return {}
+        for _, _, files in os.walk(history_path):
+            for txt in files:
+                txt_path = getFile(history_path, txt)
+                with open(txt_path) as file:
+                    contents = parseContents(file.read())
+                    output = output | contents
+        return output
     def removeSea(self) -> ProvinceBuilder:
-        mask = QPixmap(getFile(self.path, "map/rivers.bmp")).createMaskFromColor(QColor(255, 0, 128))
+        mask = QPixmap(self.terrainImage).createMaskFromColor(self.WHITE_COLOR)
         self.pixmap.setMask(mask)
+        self.reloadPixmap()
         return self
     def qimgToArray(self, inputImg: QImage) -> np.ndarray:
         img = inputImg.convertToFormat(QImage.Format.Format_RGBA8888)
@@ -58,6 +126,47 @@ class ProvinceBuilder:
         out_rgba = np.dstack([out, out, out, np.full(out.shape[:2], 255, dtype=np.uint8)])
         out_rgba = out_rgba[:, :, :4]
         self.pixmap = QPixmap(self.arrayToQimg(out_rgba))
+        self.reloadPixmap()
         return self
+    def getProvincePixel(self, x: int, y: int) -> QColor:
+        return self.provinceImage.pixelColor(x, self.HEIGHT-y)
+    def provinceIsSea(self, x: int, y: int) -> bool:
+        color = self.terrainImage.pixelColor(x, self.HEIGHT-y)
+        if color == self.WHITE_COLOR:
+            return True
+        return False
+    def provinceIsSelected(self, x: int, y: int) -> bool:
+        color = self.getProvincePixel(x, y)
+        id = self.colorsProvinces[color.rgb()]
+        if id in self.addedProvinces:
+            return True
+        return False
+    def updatePixmap(self):
+        self.reloadPixmap()
+        if self.selectedMask is None:
+            return
+        painter = QPainter(self.visualpixmap)
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(self.SELECTION_COLOR)
+        painter.setClipRegion(self.selectedMask)
+        painter.drawRect(self.pixmap.rect())
+        painter.end()
+    def deselectProvince(self, color: QColor) -> int:
+        mask = QRegion(QBitmap.fromImage(self.provinceImage.createMaskFromColor(color.rgb(), Qt.MaskOutColor)))
+        id = self.colorsProvinces[color.rgb()]
+        self.addedProvinces.remove(id)
+        self.selectedMask = self.selectedMask.xored(mask)
+        self.updatePixmap()
+        return id
+    def selectProvince(self, color: QColor) -> int:
+        mask = QRegion(QBitmap.fromImage(self.provinceImage.createMaskFromColor(color.rgb(), Qt.MaskOutColor)))
+        id = self.colorsProvinces[color.rgb()]
+        self.addedProvinces.append(id)
+        if self.selectedMask is None:
+            self.selectedMask = mask
+        else:
+            self.selectedMask = self.selectedMask.united(mask)
+        self.updatePixmap()
+        return id
     def getPixmap(self) -> QPixmap:
-        return self.pixmap.transformed(QTransform().scale(1, -1))
+        return self.visualpixmap.transformed(QTransform().scale(1, -1))
