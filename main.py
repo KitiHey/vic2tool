@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QLabel, QWidget
+from PySide6.QtWidgets import QApplication, QLabel, QWidget, QPushButton
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QObject
 from province import ProvinceBuilder
@@ -38,6 +38,11 @@ builder = ProvinceBuilder(path) \
             .removeSea()
 window.popSelectorImg.setPixmap(builder.getPixmap())
 
+def updateValues():
+    window.popChanged.setText(str(builder.population()))
+    window.currentPop.setText(str(builder.population()))
+    window.removedPop.setText("0")
+    window.selectedProvinces.setText(", ".join(builder.selectedProvinces()))
 def clickedSelector(x, y):
     if builder.provinceIsSea(x, y):
         return
@@ -48,10 +53,7 @@ def clickedSelector(x, y):
         builder.selectProvince(color)
 
     window.popSelectorImg.setPixmap(builder.getPixmap())
-    window.popChanged.setText(str(builder.population()))
-    window.currentPop.setText(str(builder.population()))
-    window.removedPop.setText("0")
-    window.selectedProvinces.setText(", ".join(builder.selectedProvinces()))
+    updateValues()
 def changePop():
     try:
         txt = str(eval(window.popChanged.text()))
@@ -59,11 +61,17 @@ def changePop():
         txt = window.currentPop.text()
     window.popChanged.setText(txt)
     window.removedPop.setText(str(int(float(window.currentPop.text())-float(txt))))
-
+def confirmChanges():
+    builder.changePopTo(int(float(window.popChanged.text())))
+    updateValues()
+def saveChanges():
+    builder.savePop()
 
 window.popSelectorImg.installEventFilter(window)
 window.popSelectorImg.clicked.connect(clickedSelector)
 window.popChanged.returnPressed.connect(changePop)
+window.confirmPopChange.clicked.connect(confirmChanges)
+window.savePopChange.clicked.connect(saveChanges)
 
 window.show()
 app.exec()
