@@ -24,6 +24,8 @@ class ProvinceBuilder:
         self.path = path
         self.provinceImage = QImage(getFile(path, "map/provinces.bmp"))
         self.terrainImage = QImage(getFile(self.path, "map/terrain.bmp"))
+        self.history_path = getFile(self.path, "history/pops/1836.1.1")
+        self.csv = getFile(self.path, "map/definition.csv")
         self.pixmap = QPixmap(self.provinceImage)
         self.reloadPixmap()
         self.provincesPops = self.getPopulation()
@@ -32,8 +34,6 @@ class ProvinceBuilder:
         self.addedProvinces = []
         self.selectedMask = None
     def savePop(self):
-        # TODO: Unhardcode the 1836.1.1
-        history_path = getFile(self.path, "history/pops/1836.1.1")
         idprovinces = re.compile(r'^(\d+) = {', re.MULTILINE)
         sizeprovinces  = re.compile(r'size = (\d+)', re.MULTILINE)
         def changetext(txt: str) -> str:
@@ -52,9 +52,9 @@ class ProvinceBuilder:
                 newtext += line + "\n"
             last_size = 0
             return newtext
-        for _, _, files in os.walk(history_path):
+        for _, _, files in os.walk(self.history_path):
             for txt in files:
-                txt_path = getFile(history_path, txt)
+                txt_path = getFile(self.history_path, txt)
                 with open(txt_path, "r+") as file:
                     newtext = changetext(file.read())
                     file.seek(0)
@@ -77,10 +77,9 @@ class ProvinceBuilder:
     def reloadPixmap(self):
         self.visualpixmap = self.pixmap.copy()
     def getProvincesColors(self) -> map[int, int]:
-        csv = getFile(self.path, "map/definition.csv")
         rgx = re.compile(r'(\d+)\.?;(\d+)\.?;(\d+)\.?;(\d+)\.?;', re.MULTILINE)
         output = {}
-        with open(csv, "r", errors="ignore") as file:
+        with open(self.csv, "r", errors="ignore") as file:
             for match in rgx.finditer(file.read()):
                 id = int(match.group(1))
                 r = int(match.group(2))
@@ -90,8 +89,6 @@ class ProvinceBuilder:
         return output
     def getPopulation(self) -> map[int, list[int]]:
         output = {}
-        # TODO: Unhardcode the 1836.1.1
-        history_path = getFile(self.path, "history/pops/1836.1.1")
         def parseContents(text: str) -> map[int, int]:
             ouptut = {}
             idprovinces = re.compile(r'^(\d+) = {', re.MULTILINE).finditer(text)
@@ -114,10 +111,10 @@ class ProvinceBuilder:
                     sizes.append(int(size.group(1)))
                 output[id] = sizes
             return {}
-        for _, _, files in os.walk(history_path):
+        for _, _, files in os.walk(self.history_path):
             for txt in files:
-                txt_path = getFile(history_path, txt)
-                with open(txt_path) as file:
+                txt_path = getFile(self.history_path, txt)
+                with open(txt_path, errors="ignore") as file:
                     contents = parseContents(file.read())
                     output = output | contents
         return output

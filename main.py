@@ -33,9 +33,13 @@ for widget in custom_widgets.widgets:
     loader.registerCustomWidget(widget)
 window = loader.load("ui/mainwindow.ui", None)
 
-builder = ProvinceBuilder(path) \
-            .removeProvinceColors() \
-            .removeSea()
+try:
+    builder = ProvinceBuilder(path) \
+                .removeProvinceColors() \
+                .removeSea()
+except FileNotFoundError as e:
+    errorOut(window, str(e))
+    exit(0)
 window.popSelectorImg.setPixmap(builder.getPixmap())
 
 def updateValues():
