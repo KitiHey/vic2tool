@@ -1,6 +1,17 @@
 from PySide6.QtWidgets import QMessageBox
-import os
 from time import time
+from ctypes import cdll
+import os
+import sys
+
+def loadCLibrary(library):
+    if sys.platform.startswith("win"):
+        lib_path = f"./libs/{library}.dll"
+    elif sys.platform.startswith("linux"):
+        lib_path = f"./libs/{library}.so"
+    else:
+        raise OSError("Unsupported platform")
+    return cdll.LoadLibrary(lib_path)
 
 def timeBench(function):
     def wrapper(*args, **kwargs):

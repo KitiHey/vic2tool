@@ -1,14 +1,12 @@
 from PySide6.QtGui import QPixmap, QImage, QBitmap, QTransform, QColor, QPainter, QRegion
 from PySide6.QtCore import Qt
-from utilities import getFile, timeBench
+from utilities import getFile, timeBench, loadCLibrary
 from functools import cache
 import ctypes
-from ctypes import cdll
 import re
 import os
 
-
-dllBorder = cdll.LoadLibrary("./libs/border.so")
+dllBorder = loadCLibrary("border")
 paint_border = dllBorder.paint_border
 paint_border.argtypes = [ctypes.POINTER(ctypes.c_int8), ctypes.c_int, ctypes.c_int, ctypes.c_int]
 class ProvinceBuilder:
