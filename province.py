@@ -1,6 +1,6 @@
 from PySide6.QtGui import QPixmap, QImage, QBitmap, QTransform, QColor, QPainter, QRegion
 from PySide6.QtCore import Qt
-from utilities import getFile
+from utilities import getFile, timeBench
 from functools import cache
 import numpy as np
 import re
@@ -37,6 +37,7 @@ class ProvinceBuilder:
                 b = int(match.group(4))
                 output[id] = QColor(r, g, b).rgb()
         return output
+    @timeBench
     def removeSea(self) -> ProvinceBuilder:
         mask = QPixmap(self.terrainImage).createMaskFromColor(self.WHITE_COLOR)
         self.pixmap.setMask(mask)
@@ -53,6 +54,7 @@ class ProvinceBuilder:
         ptr_view = np.frombuffer(ptr, np.uint8).reshape((self.HEIGHT, img.bytesPerLine() // 4, 4))
         ptr_view[:, :self.WIDTH, :] = arr
         return img.copy()
+    @timeBench
     def removeProvinceColors(self) -> ProvinceBuilder:        
         newimage = self.pixmap.toImage()
         #for i in range(self.WIDTH):
