@@ -1,3 +1,4 @@
+from PySide6.QtCore import QRect
 from utilities import succededOut, errorOut
 
 def popSelector(window, builder: ProvinceBuilder):
@@ -53,3 +54,5 @@ def popSelector(window, builder: ProvinceBuilder):
     window.savePopChange.clicked.connect(saveChanges)
     window.dateDropdown.activated.connect(changeDate)
     window.clearPopMap.clicked.connect(clearSelection)
+
+    window.scrollAreaWidgetContents.setGeometry(QRect(0, 0, builder.WIDTH, builder.HEIGHT))

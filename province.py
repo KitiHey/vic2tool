@@ -10,14 +10,14 @@ dllBorder = loadCLibrary("border")
 paint_border = dllBorder.paint_border
 paint_border.argtypes = [ctypes.POINTER(ctypes.c_int8), ctypes.c_int, ctypes.c_int, ctypes.c_int]
 class ProvinceBuilder:
-    WIDTH  = 5616
-    HEIGHT = 2160
     WHITE_COLOR = QColor(255, 255, 255)
     SELECTION_COLOR = QColor(255, 255, 0, 100)
     def __init__(self, path):
         self.path = path
         self.provinceImage = QImage(getFile(path, "map/provinces.bmp"))
         self.terrainImage = QImage(getFile(self.path, "map/terrain.bmp"))
+        self.WIDTH = self.provinceImage.size().width()
+        self.HEIGHT = self.provinceImage.size().height()
         self.csv = getFile(self.path, "map/definition.csv")
         self.pixmap = QPixmap(self.provinceImage)
         self.reloadPixmap()
